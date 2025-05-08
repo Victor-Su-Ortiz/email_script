@@ -119,7 +119,8 @@ router.get('/preview', async (req, res) => {
       previewSubject,
       processedContent,
       previewContent,
-      fields: req.session.csvFields
+      fields: req.session.csvFields,
+      recipients: recipients  // Pass all recipients to the template
     });
   });
 
