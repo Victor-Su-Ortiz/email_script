@@ -1,0 +1,131 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">
+          <i class="fas fa-info-circle me-2"></i>
+          About Bulk Email Sender
+        </h3>
+      </div>
+      <div class="card-body p-4">
+        <div class="mb-4">
+          <h4>What is Bulk Email Sender?</h4>
+          <p>
+            Bulk Email Sender is a simple yet powerful tool for sending personalized emails to multiple recipients.
+            It allows you to create custom email templates with dynamic placeholders that will be replaced with
+            recipient-specific information from a CSV file.
+          </p>
+        </div>
+        
+        <div class="mb-4">
+          <h4>How It Works</h4>
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex">
+                <div class="feature-icon bg-primary text-white rounded-circle me-3">
+                  <span>1</span>
+                </div>
+                <div>
+                  <h5>Create an Email Template</h5>
+                  <p class="mb-0">
+                    Design your email template with placeholders like [name], [company], etc.
+                    These placeholders will be replaced with actual values from your CSV file.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex">
+                <div class="feature-icon bg-primary text-white rounded-circle me-3">
+                  <span>2</span>
+                </div>
+                <div>
+                  <h5>Upload CSV with Recipient Data</h5>
+                  <p class="mb-0">
+                    Upload a CSV file containing recipient email addresses and corresponding values
+                    for each placeholder used in your template.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex">
+                <div class="feature-icon bg-primary text-white rounded-circle me-3">
+                  <span>3</span>
+                </div>
+                <div>
+                  <h5>Preview and Send</h5>
+                  <p class="mb-0">
+                    Preview how your emails will look and then send them to all recipients.
+                    Each recipient will receive a personalized email with their specific information.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <h4>Features</h4>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              Custom email templates with dynamic placeholders
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              CSV upload for recipient data
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              Email preview before sending
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              Bulk sending to multiple recipients
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              Detailed sending reports and statistics
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-check text-success me-2"></i>
+              Mobile-friendly responsive design
+            </li>
+          </ul>
+        </div>
+        
+        <div class="mb-4">
+          <h4>Security and Privacy</h4>
+          <p>
+            Bulk Email Sender prioritizes the security and privacy of your data. Your email templates
+            and recipient information are processed securely and are not stored permanently on our servers.
+            CSV files are deleted after the emails are sent.
+          </p>
+        </div>
+        
+        <div class="mb-4">
+          <h4>Getting Started</h4>
+          <p>
+            Ready to send your first batch of personalized emails? Click the button below to get started.
+          </p>
+          <div class="text-center mt-3">
+            <a href="/template" class="btn btn-primary">
+              <i class="fas fa-envelope-open-text me-1"></i> Create Email Template
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

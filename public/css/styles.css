@@ -1,0 +1,156 @@
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+  }
+  
+  .container {
+    flex: 1;
+  }
+  
+  .footer {
+    margin-top: auto;
+  }
+  
+  /* Feature icons */
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+  }
+  
+  /* Card styling */
+  .card {
+    border-radius: 10px;
+    overflow: hidden;
+    border: none;
+  }
+  
+  .card-header {
+    border-bottom: none;
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+  
+  /* Form controls */
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  .form-control-lg {
+    height: calc(1.5em + 1rem + 2px);
+  }
+  
+  textarea.form-control {
+    min-height: 200px;
+  }
+  
+  /* Email content styling */
+  .email-content {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  
+  /* Success and error icons */
+  .success-icon,
+  .error-icon {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Placeholders in preview */
+  .placeholder {
+    background-color: #e9ecef;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: bold;
+    color: #0d6efd;
+  }
+  
+  /* Navigation active state */
+  .navbar-nav .nav-link.active {
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.25rem;
+  }
+  
+  /* File upload zone */
+  .upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+  
+  .upload-zone .upload-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+  
+  /* Custom accordion styling */
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 0.9rem;
+    }
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    h3 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* Loading spinner */
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .btn-loading {
+    position: relative;
+  }
+  
+  .btn-loading .spinner-border {
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    left: 50%;
+    top: 50%;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    display: none;
+  }
+  
+  .btn-loading.loading {
+    color: transparent !important;
+  }
+  
+  .btn-loading.loading .spinner-border {
+    display: block;
+  }

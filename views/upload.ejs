@@ -1,0 +1,103 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">
+          <i class="fas fa-upload me-2"></i>
+          Upload Recipients
+        </h3>
+      </div>
+      <div class="card-body p-4">
+        <div class="row mb-4">
+          <div class="col-lg-12">
+            <div class="alert alert-info">
+              <h5><i class="fas fa-info-circle me-2"></i> CSV Requirements</h5>
+              <p class="mb-0">
+                Upload a CSV file with the following fields:
+                <strong>email</strong> (required) and 
+                <% if (typeof templateFields !== 'undefined' && templateFields.length > 0) { %>
+                  <% templateFields.forEach((field, index) => { %>
+                    <strong><%= field %></strong><%= index < templateFields.length - 1 ? ', ' : '' %>
+                  <% }); %>
+                <% } else { %>
+                  any additional fields used in your template
+                <% } %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <form action="/email/upload" method="POST" enctype="multipart/form-data">
+          <div class="mb-4">
+            <label for="recipients" class="form-label">Recipients CSV File</label>
+            <input type="file" class="form-control" id="recipients" name="recipients" accept=".csv" required>
+            <div class="form-text">
+              Your CSV file must include an "email" column and all fields used in your template.
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h5 class="card-title">CSV Example</h5>
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead>
+                      <tr>
+                        <th>email</th>
+                        <% if (typeof templateFields !== 'undefined') { %>
+                          <% templateFields.forEach(field => { %>
+                            <th><%= field %></th>
+                          <% }); %>
+                        <% } else { %>
+                          <th>name</th>
+                          <th>company</th>
+                          <th>...</th>
+                        <% } %>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>john@example.com</td>
+                        <% if (typeof templateFields !== 'undefined') { %>
+                          <% templateFields.forEach(field => { %>
+                            <td>
+                              <%= field === 'Name' ? 'John Doe' : 
+                                field === 'Your Name' ? 'Your Name' : 
+                                field === 'Sponsor Name' ? 'Acme Inc.' : 
+                                field === 'Your Full Name' ? 'Your Full Name' : 
+                                field === 'Email' ? 'your.email@example.com' : 
+                                field === 'Website' ? 'example.com' : 
+                                `[${field} value]` %>
+                            </td>
+                          <% }); %>
+                        <% } else { %>
+                          <td>John Doe</td>
+                          <td>Acme Inc.</td>
+                          <td>...</td>
+                        <% } %>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-end">
+            <a href="/template" class="btn btn-outline-secondary me-2">
+              <i class="fas fa-arrow-left me-1"></i> Back to Template
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-upload me-1"></i> Upload & Continue
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

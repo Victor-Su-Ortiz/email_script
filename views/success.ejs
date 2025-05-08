@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h3 class="mb-0">
+          <i class="fas fa-check-circle me-2"></i>
+          Emails Sent Successfully
+        </h3>
+      </div>
+      <div class="card-body p-4 text-center">
+        <div class="mb-4">
+          <div class="success-icon mb-3">
+            <i class="fas fa-paper-plane fa-5x text-success"></i>
+          </div>
+          <h2 class="mb-3">All Done!</h2>
+          <p class="lead">
+            Your emails have been sent to <%= totalCount %> recipients.
+          </p>
+        </div>
+        
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <h1 class="display-4 text-success"><%= successCount %></h1>
+                <p class="lead mb-0">Successful</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <h1 class="display-4 text-<%= errorCount > 0 ? 'danger' : 'success' %>"><%= errorCount %></h1>
+                <p class="lead mb-0">Failed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <% if (errorCount > 0) { %>
+          <div class="mb-4">
+            <div class="card">
+              <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Failed Emails</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Email</th>
+                        <th>Error</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% results.errors.forEach((error, index) => { %>
+                        <tr>
+                          <td><%= index + 1 %></td>
+                          <td><%= error.email %></td>
+                          <td><%= error.error %></td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } %>
+        
+        <div class="text-center mt-4">
+          <a href="/" class="btn btn-primary btn-lg">
+            <i class="fas fa-home me-1"></i> Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
