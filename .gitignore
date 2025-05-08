@@ -9,9 +9,6 @@ logs
 *.log
 npm-debug.log*
 
-# Runtime data
-uploads/
-
 # Editor directories and files
 .idea/
 .vscode/
