@@ -13,7 +13,7 @@ module.exports = {
     ],
     
     // Maximum recipients per batch
-    maxRecipientsPerBatch: 50,
+    maxRecipientsPerBatch: 100,
     
     // Rate limiting (emails per hour)
     rateLimit: {
@@ -46,7 +46,7 @@ module.exports = {
   Best regards,
   [Your Full Name]
   AgentHacks Team
-  [Email] | [Website]`
+  [Your Email] | [Website]`
       },
       {
         name: 'Job Application Follow-up',

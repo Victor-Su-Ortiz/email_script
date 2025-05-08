@@ -41,7 +41,13 @@
               </div>
               <hr>
               <div class="email-content">
-                <%- previewContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>') %>
+                <%- previewContent %>
+              </div>
+              
+              <hr>
+              <div class="mt-3">
+                <h6 class="text-muted">Raw Text Version (for reference):</h6>
+                <pre class="bg-light p-3"><%= processedContent %></pre>
               </div>
             </div>
           </div>
@@ -69,7 +75,7 @@
                       <tr>
                         <td><%= i + 1 %></td>
                         <% fields.forEach(field => { %>
-                          <td><%= previewRecipient[field] || '' %></td>
+                            <td><%= previewRecipient[field] || '' %></td>
                         <% }); %>
                       </tr>
                     <% } %>

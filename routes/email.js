@@ -3,7 +3,7 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs-extra');
 const { parseCSV, extractFieldNames } = require('../utils/csvParser');
-const { processTemplate, sendBulkEmails } = require('../utils/emailSender');
+const { processTemplate, sendBulkEmails, markdownToHtml } = require('../utils/emailSender');
 
 /**
  * Middleware to check if user is authenticated with email credentials
@@ -91,31 +91,37 @@ router.post('/upload', ensureEmailAuth, (req, res, next) => {
 /**
  * GET /email/preview - Preview emails before sending
  */
-router.get('/preview', ensureEmailAuth, async (req, res) => {
-  // Check if template and CSV data exist in session
-  if (!req.session.emailTemplate || !req.session.recipients) {
-    req.flash('error_msg', 'Please upload a CSV file with recipients');
-    return res.redirect('/email/upload');
-  }
-  
-  const template = req.session.emailTemplate;
-  const recipients = req.session.recipients;
-  
-  // Process first recipient for preview
-  const previewRecipient = recipients[0];
-  const previewSubject = processTemplate(template.subject, previewRecipient);
-  const previewContent = processTemplate(template.content, previewRecipient);
-  
-  res.render('preview', {
-    title: 'Preview Emails',
-    template,
-    recipientCount: recipients.length,
-    previewRecipient,
-    previewSubject,
-    previewContent,
-    fields: req.session.csvFields
+router.get('/preview', async (req, res) => {
+    // Check if template and CSV data exist in session
+    if (!req.session.emailTemplate || !req.session.recipients) {
+      req.flash('error_msg', 'Please upload a CSV file with recipients');
+      return res.redirect('/email/upload');
+    }
+    
+    const template = req.session.emailTemplate;
+    const recipients = req.session.recipients;
+    
+    // Process first recipient for preview
+    const previewRecipient = recipients[0];
+    const previewSubject = processTemplate(template.subject, previewRecipient);
+    
+    // Process content with placeholders
+    const processedContent = processTemplate(template.content, previewRecipient);
+    
+    // Convert to HTML for display
+    const previewContent = markdownToHtml(processedContent);
+    
+    res.render('preview', {
+      title: 'Preview Emails',
+      template,
+      recipientCount: recipients.length,
+      previewRecipient,
+      previewSubject,
+      processedContent,
+      previewContent,
+      fields: req.session.csvFields
+    });
   });
-});
 
 /**
  * POST /email/send - Send emails to all recipients
