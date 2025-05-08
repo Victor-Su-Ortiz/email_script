@@ -2,13 +2,15 @@ const nodemailer = require('nodemailer');
 
 /**
  * Create a reusable transporter object using SMTP transport
+ * @param {Object} credentials - Email credentials object
+ * @returns {Object} - Nodemailer transporter object
  */
-const createTransporter = () => {
+const createTransporter = (credentials) => {
   return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
+    service: credentials.service,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
+      user: credentials.email,
+      pass: credentials.password
     }
   });
 };
@@ -34,17 +36,14 @@ const processTemplate = (template, data) => {
 /**
  * Send email to a single recipient
  * @param {Object} options - Email options
- * @param {string} options.to - Recipient email
- * @param {string} options.subject - Email subject
- * @param {string} options.html - Email HTML content
- * @param {string} options.text - Email text content
+ * @param {Object} credentials - Email credentials
  * @returns {Promise} - Promise resolving to send result
  */
-const sendEmail = async (options) => {
-  const transporter = createTransporter();
+const sendEmail = async (options, credentials) => {
+  const transporter = createTransporter(credentials);
   
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: credentials.from || credentials.email,
     to: options.to,
     subject: options.subject,
     html: options.html,
@@ -58,11 +57,15 @@ const sendEmail = async (options) => {
  * Send emails to multiple recipients
  * @param {Array} recipients - Array of recipient objects
  * @param {Object} template - Email template object
- * @param {string} template.subject - Email subject template
- * @param {string} template.content - Email content template
- * @returns {Promise<Array>} - Promise resolving to array of send results
+ * @param {Object} credentials - Email credentials
+ * @returns {Promise<Object>} - Promise resolving to results object
  */
-const sendBulkEmails = async (recipients, template) => {
+const sendBulkEmails = async (recipients, template, credentials) => {
+  // Check if credentials exist
+  if (!credentials) {
+    throw new Error('Email credentials not found. Please sign in first.');
+  }
+  
   const results = [];
   const errors = [];
   
@@ -79,7 +82,7 @@ const sendBulkEmails = async (recipients, template) => {
         to: recipient.email,
         subject,
         html,
-      });
+      }, credentials);
       
       results.push({
         email: recipient.email,

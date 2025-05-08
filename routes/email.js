@@ -6,9 +6,20 @@ const { parseCSV, extractFieldNames } = require('../utils/csvParser');
 const { processTemplate, sendBulkEmails } = require('../utils/emailSender');
 
 /**
+ * Middleware to check if user is authenticated with email credentials
+ */
+const ensureEmailAuth = (req, res, next) => {
+  if (!req.session.emailCredentials) {
+    req.flash('error_msg', 'Please sign in with your email credentials first');
+    return res.redirect('/auth/signin');
+  }
+  next();
+};
+
+/**
  * GET /email/upload - Show CSV upload form
  */
-router.get('/upload', (req, res) => {
+router.get('/upload', ensureEmailAuth, (req, res) => {
   // Check if template exists in session
   if (!req.session.emailTemplate) {
     req.flash('error_msg', 'Please create an email template first');
@@ -24,7 +35,7 @@ router.get('/upload', (req, res) => {
 /**
  * POST /email/upload - Process CSV upload
  */
-router.post('/upload', (req, res, next) => {
+router.post('/upload', ensureEmailAuth, (req, res, next) => {
   // Check if template exists in session
   if (!req.session.emailTemplate) {
     req.flash('error_msg', 'Please create an email template first');
@@ -80,7 +91,7 @@ router.post('/upload', (req, res, next) => {
 /**
  * GET /email/preview - Preview emails before sending
  */
-router.get('/preview', async (req, res) => {
+router.get('/preview', ensureEmailAuth, async (req, res) => {
   // Check if template and CSV data exist in session
   if (!req.session.emailTemplate || !req.session.recipients) {
     req.flash('error_msg', 'Please upload a CSV file with recipients');
@@ -109,7 +120,7 @@ router.get('/preview', async (req, res) => {
 /**
  * POST /email/send - Send emails to all recipients
  */
-router.post('/send', async (req, res) => {
+router.post('/send', ensureEmailAuth, async (req, res) => {
   // Check if template and CSV data exist in session
   if (!req.session.emailTemplate || !req.session.recipients) {
     req.flash('error_msg', 'Please upload a CSV file with recipients');
@@ -119,9 +130,10 @@ router.post('/send', async (req, res) => {
   try {
     const template = req.session.emailTemplate;
     const recipients = req.session.recipients;
+    const credentials = req.session.emailCredentials;
     
-    // Send emails
-    const results = await sendBulkEmails(recipients, template);
+    // Send emails using session credentials
+    const results = await sendBulkEmails(recipients, template, credentials);
     
     // Clean up CSV file
     if (req.session.csvFilePath) {
@@ -143,7 +155,7 @@ router.post('/send', async (req, res) => {
 /**
  * GET /email/success - Show success page
  */
-router.get('/success', (req, res) => {
+router.get('/success', ensureEmailAuth, (req, res) => {
   // Check if results exist in session
   if (!req.session.emailResults) {
     req.flash('error_msg', 'No email sending results found');

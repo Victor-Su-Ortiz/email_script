@@ -13,6 +13,7 @@ dotenv.config();
 const indexRoutes = require('./routes/index');
 const templateRoutes = require('./routes/template');
 const emailRoutes = require('./routes/email');
+const authRoutes = require('./routes/auth'); // New auth routes
 
 // Initialize app
 const app = express();
@@ -53,7 +54,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'bulk-email-sender-secret',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 60 * 60 * 1000 } // 1 hour
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
 // Flash messages
@@ -61,6 +62,8 @@ app.use(flash());
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
+  res.locals.isAuthenticated = !!req.session.emailCredentials;
+  res.locals.userEmail = req.session.emailCredentials ? req.session.emailCredentials.email : null;
   next();
 });
 
@@ -74,6 +77,7 @@ app.use((req, res, next) => {
 app.use('/', indexRoutes);
 app.use('/template', templateRoutes);
 app.use('/email', emailRoutes);
+app.use('/auth', authRoutes); // Add auth routes
 
 // Error handler
 app.use((err, req, res, next) => {
