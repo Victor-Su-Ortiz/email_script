@@ -10,9 +10,18 @@ const { processTemplate, sendBulkEmails, markdownToHtml } = require('../utils/em
  */
 const ensureEmailAuth = (req, res, next) => {
   if (!req.session.emailCredentials) {
-    req.flash('error_msg', 'Please sign in with your email credentials first');
+    req.flash('error_msg', 'Please sign in with your email credentials or Google account first');
     return res.redirect('/auth/signin');
   }
+  
+  // For OAuth users, verify if we have all required credentials
+  if (req.session.emailCredentials.oauth === true) {
+    if (!req.session.emailCredentials.accessToken) {
+      req.flash('error_msg', 'OAuth access token missing. Please sign in again.');
+      return res.redirect('/auth/signin');
+    }
+  }
+  
   next();
 };
 
@@ -91,73 +100,74 @@ router.post('/upload', ensureEmailAuth, (req, res, next) => {
 /**
  * GET /email/preview - Preview emails before sending
  */
-router.get('/preview', async (req, res) => {
-    // Check if template and CSV data exist in session
-    if (!req.session.emailTemplate || !req.session.recipients) {
-      req.flash('error_msg', 'Please upload a CSV file with recipients');
-      return res.redirect('/email/upload');
-    }
-    
-    const template = req.session.emailTemplate;
-    const recipients = req.session.recipients;
-    
-    // Process first recipient for preview
-    const previewRecipient = recipients[0];
-    const previewSubject = processTemplate(template.subject, previewRecipient);
-    
-    // Process content with placeholders
-    const processedContent = processTemplate(template.content, previewRecipient);
-    
-    // Convert to HTML for display
-    const previewContent = markdownToHtml(processedContent);
-    
-    res.render('preview', {
-      title: 'Preview Emails',
-      template,
-      recipientCount: recipients.length,
-      previewRecipient,
-      previewSubject,
-      processedContent,
-      previewContent,
-      fields: req.session.csvFields,
-      recipients: recipients  // Pass all recipients to the template
-    });
+router.get('/preview', ensureEmailAuth, async (req, res) => {
+  // Check if template and CSV data exist in session
+  if (!req.session.emailTemplate || !req.session.recipients) {
+    req.flash('error_msg', 'Please upload a CSV file with recipients');
+    return res.redirect('/email/upload');
+  }
+  
+  const template = req.session.emailTemplate;
+  const recipients = req.session.recipients;
+  
+  // Process first recipient for preview
+  const previewRecipient = recipients[0];
+  const previewSubject = processTemplate(template.subject, previewRecipient);
+  
+  // Process content with placeholders
+  const processedContent = processTemplate(template.content, previewRecipient);
+  
+  // Convert to HTML for display
+  const previewContent = markdownToHtml(processedContent);
+  
+  res.render('preview', {
+    title: 'Preview Emails',
+    template,
+    recipientCount: recipients.length,
+    previewRecipient,
+    previewSubject,
+    processedContent,
+    previewContent,
+    fields: req.session.csvFields,
+    recipients: recipients,  // Pass all recipients to the template
+    authType: req.session.emailCredentials.oauth ? 'Google' : req.session.emailCredentials.service
   });
+});
 
 /**
  * POST /email/send - Send emails to all recipients
  */
 router.post('/send', ensureEmailAuth, async (req, res) => {
-    // Check if template and CSV data exist in session
-    if (!req.session.emailTemplate || !req.session.recipients) {
-      req.flash('error_msg', 'Please upload a CSV file with recipients');
-      return res.redirect('/email/upload');
+  // Check if template and CSV data exist in session
+  if (!req.session.emailTemplate || !req.session.recipients) {
+    req.flash('error_msg', 'Please upload a CSV file with recipients');
+    return res.redirect('/email/upload');
+  }
+  
+  try {
+    const template = req.session.emailTemplate;
+    const recipients = req.session.recipients;
+    const credentials = req.session.emailCredentials;
+    
+    // Send emails using session credentials and pass req for token refresh
+    const results = await sendBulkEmails(recipients, template, credentials, req);
+    
+    // Clean up CSV file
+    if (req.session.csvFilePath) {
+      fs.unlinkSync(req.session.csvFilePath);
+      delete req.session.csvFilePath;
     }
     
-    try {
-      const template = req.session.emailTemplate;
-      const recipients = req.session.recipients;
-      const credentials = req.session.emailCredentials;
-      
-      // Send emails using session credentials
-      const results = await sendBulkEmails(recipients, template, credentials);
-      
-      // Clean up CSV file
-      if (req.session.csvFilePath) {
-        fs.unlinkSync(req.session.csvFilePath);
-        delete req.session.csvFilePath;
-      }
-      
-      // Store results in session
-      req.session.emailResults = results;
-      
-      // Redirect to success page
-      res.redirect('/email/success');
-    } catch (error) {
-      req.flash('error_msg', `Error sending emails: ${error.message}`);
-      res.redirect('/email/preview');
-    }
-  });
+    // Store results in session
+    req.session.emailResults = results;
+    
+    // Redirect to success page
+    res.redirect('/email/success');
+  } catch (error) {
+    req.flash('error_msg', `Error sending emails: ${error.message}`);
+    res.redirect('/email/preview');
+  }
+});
 
 /**
  * GET /email/success - Show success page

@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { refreshAccessToken } = require('./oauth');
 
 /**
  * Create a reusable transporter object using SMTP transport
@@ -11,16 +12,35 @@ const createTransporter = (credentials) => {
     throw new Error('Email credentials are required');
   }
 
-  // Configure transporter based on service
-  const config = {
-    service: credentials.service, // gmail, outlook, yahoo, etc.
-    auth: {
-      user: credentials.email,
-      pass: credentials.password
+  // For Google OAuth authentication
+  if (credentials.oauth === true) {
+    if (!credentials.accessToken) {
+      throw new Error('Access token required for OAuth authentication');
     }
-  };
+    
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: credentials.email,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken
+      }
+    });
+  } else {
+    // Regular password authentication
+    const config = {
+      service: credentials.service, // gmail, outlook, yahoo, etc.
+      auth: {
+        user: credentials.email,
+        pass: credentials.password
+      }
+    };
 
-  return nodemailer.createTransport(config);
+    return nodemailer.createTransport(config);
+  }
 };
 
 /**
@@ -84,10 +104,38 @@ const markdownToHtml = (markdown) => {
  * @param {string} options.html - Email HTML content
  * @param {string} options.text - Email text content
  * @param {Object} credentials - Email credentials for authentication
+ * @param {Object} req - Express request object for session updates
  * @returns {Promise} - Promise resolving to send result
  */
-const sendEmail = async (options, credentials) => {
-  const transporter = createTransporter(credentials);
+const sendEmail = async (options, credentials, req = null) => {
+  let transporter;
+  
+  try {
+    transporter = createTransporter(credentials);
+  } catch (error) {
+    // If error is related to invalid access token and we have a refresh token, try refreshing
+    if (credentials.oauth && 
+        credentials.refreshToken && 
+        error.message.includes('access token') &&
+        req && req.session) {
+      
+      try {
+        // Refresh the token
+        const newAccessToken = await refreshAccessToken(credentials.refreshToken);
+        
+        // Update the credentials in session
+        credentials.accessToken = newAccessToken;
+        req.session.emailCredentials.accessToken = newAccessToken;
+        
+        // Create transporter with new token
+        transporter = createTransporter(credentials);
+      } catch (refreshError) {
+        throw new Error(`Failed to refresh access token: ${refreshError.message}`);
+      }
+    } else {
+      throw error;
+    }
+  }
   
   const mailOptions = {
     from: credentials.email, // Use the authenticated email as the sender
@@ -107,9 +155,10 @@ const sendEmail = async (options, credentials) => {
  * @param {string} template.subject - Email subject template
  * @param {string} template.content - Email content template
  * @param {Object} credentials - Email credentials for authentication
+ * @param {Object} req - Express request object for session updates
  * @returns {Promise<Array>} - Promise resolving to array of send results
  */
-const sendBulkEmails = async (recipients, template, credentials) => {
+const sendBulkEmails = async (recipients, template, credentials, req = null) => {
   const results = {
     success: [],
     errors: []
@@ -129,13 +178,13 @@ const sendBulkEmails = async (recipients, template, credentials) => {
       // Convert markdown to HTML
       const html = markdownToHtml(processedContent);
       
-      // Send email
+      // Send email, passing the request object for token refresh if needed
       const result = await sendEmail({
         to: recipient.email,
         subject,
         html,
         text: processedContent // Plain text version
-      }, credentials);
+      }, credentials, req);
       
       results.success.push({
         email: recipient.email,

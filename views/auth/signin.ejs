@@ -6,10 +6,24 @@
       <div class="card-header bg-primary text-white">
         <h3 class="mb-0">
           <i class="fas fa-sign-in-alt me-2"></i>
-          Sign In with Email Credentials
+          Sign In
         </h3>
       </div>
       <div class="card-body p-4">
+        <!-- Google Sign In Button -->
+        <div class="mb-4 text-center">
+          <a href="/auth/google" class="btn btn-danger btn-lg w-100 mb-3">
+            <i class="fab fa-google me-2"></i> Sign in with Google
+          </a>
+          <div class="divider d-flex align-items-center my-4">
+            <p class="text-center fw-bold mx-3 mb-0">OR</p>
+          </div>
+        </div>
+
+        <div class="card-header bg-light mb-4">
+          <h4 class="mb-0">Sign In with Email Credentials</h4>
+        </div>
+        
         <div class="alert alert-info mb-4">
           <h5><i class="fas fa-info-circle me-2"></i> Email Authentication</h5>
           <p class="mb-0">
@@ -66,7 +80,7 @@
           
           <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary btn-lg">
-              <i class="fas fa-sign-in-alt me-2"></i> Sign In
+              <i class="fas fa-sign-in-alt me-2"></i> Sign In with Email
             </button>
             <a href="/" class="btn btn-outline-secondary">
               <i class="fas fa-arrow-left me-2"></i> Back to Home
@@ -93,6 +107,9 @@
     </div>
   </div>
 </div>
+
+<!-- Add Font Awesome script for Google icon -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
 <!-- Custom JavaScript for this template -->
 <script>
@@ -126,5 +143,26 @@
     });
   });
 </script>
+
+<!-- Add some CSS for the divider -->
+<style>
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .divider p {
+    padding: 0 1rem;
+    margin-bottom: 0;
+  }
+</style>
 
 <%- include('../partials/footer') %>

@@ -2,12 +2,35 @@
     <div class="card bg-light mb-4">
       <div class="card-body py-2">
         <div class="d-flex align-items-center">
-          <div class="flex-shrink-0 me-3">
-            <i class="fas fa-user-check fa-2x text-success"></i>
-          </div>
+          <% if(typeof user !== 'undefined' && user && user.photo) { %>
+            <div class="flex-shrink-0 me-3">
+              <img src="<%= user.photo %>" alt="<%= user.displayName || userEmail %>" class="rounded-circle" width="40" height="40">
+            </div>
+          <% } else { %>
+            <div class="flex-shrink-0 me-3">
+              <i class="fas fa-user-check fa-2x text-success"></i>
+            </div>
+          <% } %>
           <div class="flex-grow-1">
-            <h6 class="mb-0">Signed in as <strong><%= userEmail %></strong></h6>
-            <small>Using <strong><%= req.session.emailCredentials.service %></strong> as email provider</small>
+            <h6 class="mb-0">
+              Signed in as 
+              <strong>
+                <% if(typeof user !== 'undefined' && user && user.displayName) { %>
+                  <%= user.displayName %> (<%= userEmail %>)
+                <% } else { %>
+                  <%= userEmail %>
+                <% } %>
+              </strong>
+            </h6>
+            <small>
+              <% if(typeof user !== 'undefined' && user && user.provider === 'google') { %>
+                Using <strong>Google</strong> authentication
+              <% } else if(typeof req !== 'undefined' && req.session && req.session.emailCredentials) { %>
+                Using <strong><%= req.session.emailCredentials.service %></strong> as email provider
+              <% } else { %>
+                Authenticated successfully
+              <% } %>
+            </small>
           </div>
           <div class="flex-shrink-0">
             <a href="/auth/signout" class="btn btn-sm btn-outline-secondary">
@@ -26,7 +49,7 @@
           </div>
           <div class="flex-grow-1">
             <h6 class="mb-0">Not signed in</h6>
-            <small>You need to sign in with your email credentials to send emails</small>
+            <small>You need to sign in with your email credentials or Google to send emails</small>
           </div>
           <div class="flex-shrink-0">
             <a href="/auth/signin" class="btn btn-sm btn-primary">
