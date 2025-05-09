@@ -22,8 +22,18 @@ module.exports = (app) => {
   passport.use(
     new GoogleStrategy(
       googleOAuthConfig,
-      (req, accessToken, refreshToken, profile, done) => {
+      (req, accessToken, refreshToken, params, profile, done) => {
         try {
+          // Log the tokens received from Google (for debugging)
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Google OAuth tokens received:');
+            console.log('Access Token:', accessToken ? accessToken.substring(0, 10) + '...' : 'None');
+            console.log('Refresh Token:', refreshToken ? refreshToken.substring(0, 10) + '...' : 'None');
+            console.log('Token Type:', params.token_type);
+            console.log('Expires In:', params.expires_in);
+            console.log('Scope:', params.scope);
+          }
+          
           // Extract user information from Google profile
           const user = {
             id: profile.id,
@@ -35,12 +45,15 @@ module.exports = (app) => {
             provider: 'google',
             // Store OAuth tokens for email sending
             accessToken: accessToken,
-            refreshToken: refreshToken
+            refreshToken: refreshToken,
+            expires: params.expires_in || 3599, // Default to ~1 hour if not provided
+            tokenType: params.token_type || 'Bearer'
           };
           
           // Store user in session and complete authentication
           return done(null, user);
         } catch (error) {
+          console.error('Error in Google authentication strategy:', error);
           return done(error, null);
         }
       }

@@ -18,16 +18,21 @@ const createTransporter = (credentials) => {
       throw new Error('Access token required for OAuth authentication');
     }
     
+    // Creating a transporter with OAuth2
     return nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         type: 'OAuth2',
         user: credentials.email,
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         accessToken: credentials.accessToken,
-        refreshToken: credentials.refreshToken
-      }
+        refreshToken: credentials.refreshToken,
+        expires: credentials.expires || 3599
+      },
+      debug: process.env.NODE_ENV !== 'production' // Enable debug in development
     });
   } else {
     // Regular password authentication
@@ -111,15 +116,26 @@ const sendEmail = async (options, credentials, req = null) => {
   let transporter;
   
   try {
+    // Log the authentication method being used (helpful for debugging)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Sending email using ${credentials.oauth ? 'OAuth2' : 'Password'} authentication`);
+      if (credentials.oauth) {
+        console.log(`Email: ${credentials.email}`);
+        console.log(`Access Token: ${credentials.accessToken ? credentials.accessToken.substring(0, 10) + '...' : 'None'}`);
+        console.log(`Refresh Token: ${credentials.refreshToken ? credentials.refreshToken.substring(0, 10) + '...' : 'None'}`);
+      }
+    }
+    
     transporter = createTransporter(credentials);
   } catch (error) {
     // If error is related to invalid access token and we have a refresh token, try refreshing
     if (credentials.oauth && 
         credentials.refreshToken && 
-        error.message.includes('access token') &&
+        (error.message.includes('access token') || error.code === 'EAUTH') &&
         req && req.session) {
       
       try {
+        console.log('Trying to refresh access token...');
         // Refresh the token
         const newAccessToken = await refreshAccessToken(credentials.refreshToken);
         
@@ -129,7 +145,10 @@ const sendEmail = async (options, credentials, req = null) => {
         
         // Create transporter with new token
         transporter = createTransporter(credentials);
+        
+        console.log('Access token refreshed successfully.');
       } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
         throw new Error(`Failed to refresh access token: ${refreshError.message}`);
       }
     } else {

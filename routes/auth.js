@@ -39,9 +39,17 @@ router.post('/signin', (req, res) => {
  * Google authentication routes
  */
 
-// Initiate Google authentication
+// Initiate Google authentication with necessary scopes for email
 router.get('/google', 
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  passport.authenticate('google', { 
+    scope: [
+      'profile', 
+      'email',
+      'https://mail.google.com/' // This scope is needed for full access to Gmail
+    ],
+    accessType: 'offline', // Request a refresh token
+    prompt: 'consent'      // Force consent screen to ensure we get a refresh token
+  })
 );
 
 // Google OAuth callback
@@ -53,19 +61,28 @@ router.get('/google/callback',
   (req, res) => {
     // Check if user is authenticated via Google
     if (req.user) {
+      // Log the tokens received (helpful for debugging)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Authentication successful, tokens received:');
+        console.log('Access Token:', req.user.accessToken ? req.user.accessToken.substring(0, 10) + '...' : 'None');
+        console.log('Refresh Token:', req.user.refreshToken ? req.user.refreshToken.substring(0, 10) + '...' : 'None');
+      }
+      
       // Store user in session
       req.session.user = req.user;
       
-      // Store basic email credentials to indicate authenticated status
-      // Note: For actual email sending, we'll need additional setup/confirmation
+      // Store email credentials with OAuth info
       req.session.emailCredentials = {
         email: req.user.email,
-        service: 'google',
+        service: 'gmail',
         oauth: true,
+        accessToken: req.user.accessToken,
+        refreshToken: req.user.refreshToken,
+        expires: req.user.expires || 3599,
         from: req.user.email
       };
       
-      req.flash('success_msg', `Welcome, ${req.user.displayName || req.user.email}! You've signed in with Google.`);
+      req.flash('success_msg', `Welcome, ${req.user.displayName || req.user.email}! You've signed in with Google and can now send emails.`);
     } else {
       req.flash('error_msg', 'Google authentication failed.');
     }
