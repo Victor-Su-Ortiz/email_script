@@ -128,36 +128,36 @@ router.get('/preview', async (req, res) => {
  * POST /email/send - Send emails to all recipients
  */
 router.post('/send', ensureEmailAuth, async (req, res) => {
-  // Check if template and CSV data exist in session
-  if (!req.session.emailTemplate || !req.session.recipients) {
-    req.flash('error_msg', 'Please upload a CSV file with recipients');
-    return res.redirect('/email/upload');
-  }
-  
-  try {
-    const template = req.session.emailTemplate;
-    const recipients = req.session.recipients;
-    const credentials = req.session.emailCredentials;
-    
-    // Send emails using session credentials
-    const results = await sendBulkEmails(recipients, template, credentials);
-    
-    // Clean up CSV file
-    if (req.session.csvFilePath) {
-      fs.unlinkSync(req.session.csvFilePath);
-      delete req.session.csvFilePath;
+    // Check if template and CSV data exist in session
+    if (!req.session.emailTemplate || !req.session.recipients) {
+      req.flash('error_msg', 'Please upload a CSV file with recipients');
+      return res.redirect('/email/upload');
     }
     
-    // Store results in session
-    req.session.emailResults = results;
-    
-    // Redirect to success page
-    res.redirect('/email/success');
-  } catch (error) {
-    req.flash('error_msg', `Error sending emails: ${error.message}`);
-    res.redirect('/email/preview');
-  }
-});
+    try {
+      const template = req.session.emailTemplate;
+      const recipients = req.session.recipients;
+      const credentials = req.session.emailCredentials;
+      
+      // Send emails using session credentials
+      const results = await sendBulkEmails(recipients, template, credentials);
+      
+      // Clean up CSV file
+      if (req.session.csvFilePath) {
+        fs.unlinkSync(req.session.csvFilePath);
+        delete req.session.csvFilePath;
+      }
+      
+      // Store results in session
+      req.session.emailResults = results;
+      
+      // Redirect to success page
+      res.redirect('/email/success');
+    } catch (error) {
+      req.flash('error_msg', `Error sending emails: ${error.message}`);
+      res.redirect('/email/preview');
+    }
+  });
 
 /**
  * GET /email/success - Show success page

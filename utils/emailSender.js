@@ -2,15 +2,25 @@ const nodemailer = require('nodemailer');
 
 /**
  * Create a reusable transporter object using SMTP transport
+ * @param {Object} credentials - Email credentials for authentication
+ * @returns {Object} - Nodemailer transporter
  */
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
+const createTransporter = (credentials) => {
+  // Check if credentials are provided
+  if (!credentials) {
+    throw new Error('Email credentials are required');
+  }
+
+  // Configure transporter based on service
+  const config = {
+    service: credentials.service, // gmail, outlook, yahoo, etc.
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
+      user: credentials.email,
+      pass: credentials.password
     }
-  });
+  };
+
+  return nodemailer.createTransport(config);
 };
 
 /**
@@ -73,13 +83,14 @@ const markdownToHtml = (markdown) => {
  * @param {string} options.subject - Email subject
  * @param {string} options.html - Email HTML content
  * @param {string} options.text - Email text content
+ * @param {Object} credentials - Email credentials for authentication
  * @returns {Promise} - Promise resolving to send result
  */
-const sendEmail = async (options) => {
-  const transporter = createTransporter();
+const sendEmail = async (options, credentials) => {
+  const transporter = createTransporter(credentials);
   
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: credentials.email, // Use the authenticated email as the sender
     to: options.to,
     subject: options.subject,
     html: options.html,
@@ -95,11 +106,17 @@ const sendEmail = async (options) => {
  * @param {Object} template - Email template object
  * @param {string} template.subject - Email subject template
  * @param {string} template.content - Email content template
+ * @param {Object} credentials - Email credentials for authentication
  * @returns {Promise<Array>} - Promise resolving to array of send results
  */
-const sendBulkEmails = async (recipients, template) => {
-  const results = [];
-  const errors = [];
+const sendBulkEmails = async (recipients, template, credentials) => {
+  const results = {
+    success: [],
+    errors: []
+  };
+
+  // Create a small delay between emails to avoid rate limiting
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   
   for (const recipient of recipients) {
     try {
@@ -118,17 +135,20 @@ const sendBulkEmails = async (recipients, template) => {
         subject,
         html,
         text: processedContent // Plain text version
-      });
+      }, credentials);
       
-      results.push({
+      results.success.push({
         email: recipient.email,
         status: 'success',
         messageId: result.messageId
       });
+
+      // Add a small delay between emails
+      await delay(200);
     } catch (error) {
       console.error(`Error sending email to ${recipient.email}:`, error);
       
-      errors.push({
+      results.errors.push({
         email: recipient.email,
         status: 'error',
         error: error.message
@@ -136,10 +156,7 @@ const sendBulkEmails = async (recipients, template) => {
     }
   }
   
-  return {
-    success: results,
-    errors
-  };
+  return results;
 };
 
 module.exports = {
