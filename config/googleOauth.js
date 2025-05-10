@@ -15,7 +15,6 @@ if (missingVars.length > 0) {
 // Build callback URL based on environment
 const getCallbackUrl = () => {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-  console.log(baseUrl)
   return `${baseUrl}/auth/google/callback`;
 };
 
